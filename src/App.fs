@@ -17,30 +17,74 @@ open Models.User
 type Model = {
   devices: Device list
   users: User list
+  filter: (Device -> bool)
 }
 
 type Msg =
   | BookDevice of Device * User
   | ReturnDevice of Device * User
+  | Filter of (Device -> bool)
 
 let init() : Model = {
   devices = devices;
   users = users
+  filter = (fun _ -> true) // all
 }
 
 // UPDATE
 
 let update (msg:Msg) (model:Model) =
     match msg with
-      | BookDevice (device, user) -> model
-      | ReturnDevice (device, user) -> model
+      | BookDevice (device, user) ->
+        match borrowFromDevices device user model.devices with
+          | Ok devices -> {model with devices=devices}
+          | Error err ->
+            printf "%s" err
+            model
+      | ReturnDevice (device, user) ->
+        match returnBackToDevices device user model.devices with
+          | Ok devices -> {model with devices=devices}
+          | Error err ->
+            printf "%s" err
+            model
+      | Filter filter -> {model with filter=filter}
+
 
 
 // VIEW (rendered with React)
 
+let private deviceView dispatch (device: Device) (user: User) =
+  p [] [
+    str device.Name
+    button [
+      Disabled (not (available device))
+      OnClick (fun _ -> dispatch (BookDevice (device, user)))
+    ] [str "Book"]
+    button [
+      Disabled (available device)
+      OnClick (fun _ -> dispatch (ReturnDevice (device, user)))
+    ] [str "Return"]
+  ]
 
-let view (model:Model) dispatch =
-  h3 [] [str "Hello world"]
+
+let private deviceListView dispatch model =
+  model.devices 
+    |> List.filter model.filter
+    |> List.map (fun device -> li [Key device.Name] [deviceView dispatch device model.users.Head])
+
+let view (model: Model) dispatch =
+  div [Id "Test"] [
+    ul [] (deviceListView dispatch model)
+    button [
+      OnClick (fun _ -> dispatch (Filter available))
+    ] [str "All available devices"]
+    button [
+      OnClick (fun _ -> dispatch (Filter (fun device -> (not(available device)))))
+    ] [str "All borrowed devices"]
+    button [
+      OnClick (fun _ -> dispatch (Filter (fun _ -> true)))
+    ] [str "All"]
+  ]
   // div []
   //     [ button [ OnClick (fun _ -> dispatch Increment) ] [ str "+" ]
   //       div [] [ str (string model) ]
