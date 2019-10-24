@@ -5,7 +5,7 @@ module Device =
   open Utils.Commons
 
   type DeviceId = DeviceId of int32
-  
+
   type Device = {
     Id: DeviceId
     Name: string
@@ -52,6 +52,6 @@ module Device =
     notImplemented ()
     
   let allBorrowedDevices (devices: Device list) =
-    notImplemented()
+    notImplemented ()
 
   
