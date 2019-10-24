@@ -28,30 +28,33 @@ module Device =
         (makeDevice (DeviceId 4) "Sony XHD 120Hz" "Sony")
     ]
     
-  let private borrow (device: Device) (user: User) =
+  let private borrow (device: Device) (user: User): Result<string, Device> =
     notImplemented ()
 
   let private updateDevices (devices: Device list) (deviceToReplace: Device) =
     replace (fun device device2 -> device.Id = device2.Id) devices deviceToReplace
-    
-  let private returnBack (device: Device) (user: User) =
+  
+  let private checkSameBorrower (user: User) (borrower: UserId): Result<string, UserId> =
     notImplemented ()
 
-  let private findDevice (deviceToFind: Device) (devices: Device list) =
+  let private returnBack (device: Device) (user: User): Result<string, Device> =
     notImplemented ()
 
-  let returnBackToDevices (device: Device) (user: User) (devices: Device list) =
+  let private findDevice (deviceToFind: Device) (devices: Device list): Result<string, Device> =
     notImplemented ()
 
-  let borrowFromDevices (deviceToBorrow: Device) (user: User) (devices: Device list) =
+  let returnBackToDevices (device: Device) (user: User) (devices: Device list): Result<string, list<Device>> =
+    notImplemented ()
+
+  let borrowFromDevices (deviceToBorrow: Device) (user: User) (devices: list<Device>): Result<string, list<Device>> =
     notImplemented ()
       
   let available (device: Device) = device.BorrowedBy.IsNone
   
-  let allAvailableDevices (devices: Device list) =
+  let allAvailableDevices (devices: list<Device>): list<Device> =
     notImplemented ()
     
-  let allBorrowedDevices (devices: Device list) =
+  let allBorrowedDevices (devices: list<Device>): list<Device> =
     notImplemented ()
 
   
