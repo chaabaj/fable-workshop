@@ -4,8 +4,8 @@ module Commons =
   let notImplemented () =
     raise (System.Exception  "Not implemented")
 
-  let replace (eq: 'a -> 'a -> bool) (list: list<'a>) (a: 'a): list<'a> =
-    list |> List.map (fun elem ->
+  let replace (eq: 'a -> 'a -> bool) (a: 'a) =
+    List.map (fun elem ->
       if eq elem a then a else elem
     )
   

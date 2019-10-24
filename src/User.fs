@@ -12,7 +12,7 @@ module User =
     Name = name
   }
 
-  let users: User list = [
+  let users: list<User> = [
     (makeUser (UserId 1) "John")
     (makeUser (UserId 2) "Jean")
     (makeUser (UserId 3) "Pierre")

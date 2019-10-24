@@ -79,7 +79,7 @@ let view (model: Model) dispatch =
       OnClick (fun _ -> dispatch (Filter available))
     ] [str "All available devices"]
     button [
-      OnClick (fun _ -> dispatch (Filter (fun device -> (not(available device)))))
+      OnClick (fun _ -> dispatch (Filter (available >> not)))
     ] [str "All borrowed devices"]
     button [
       OnClick (fun _ -> dispatch (Filter (fun _ -> true)))

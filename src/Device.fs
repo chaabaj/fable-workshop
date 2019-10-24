@@ -10,7 +10,7 @@ module Device =
     Id: DeviceId
     Name: string
     Manufacturer: string
-    BorrowedBy: UserId option
+    BorrowedBy: option<UserId>
   }
 
   let makeDevice id name manufacturer = {
@@ -20,7 +20,7 @@ module Device =
       BorrowedBy = None
   }
 
-  let devices: Device list =
+  let devices: list<Device> =
     [
         (makeDevice (DeviceId 1) "Dell XPS 1923" "DELL");
         (makeDevice (DeviceId 2) "Dell XPS 1930" "DELL");
@@ -28,44 +28,43 @@ module Device =
         (makeDevice (DeviceId 4) "Sony XHD 120Hz" "Sony")
     ]
     
-  let private borrow (device: Device) (user: User): Result<Device, string> =
-    match device.BorrowedBy with
-      | Some _ -> Error "Already booked"
-      | None -> Ok ({device with BorrowedBy=(Some user.Id)})
+  let private borrow (device: Device) (user: User) =
+    device.BorrowedBy
+      |> Option.map (fun _ -> Error "Already booked")
+      |> Option.orElse (Some (Ok {device with BorrowedBy=(Some user.Id)}))
+      |> Option.get
 
-  let private updateDevices (devices: Device list) (deviceToReplace: Device) =
-    replace (fun device device2 -> device.Id = device2.Id) devices deviceToReplace
+  let private updateDevices =
+    replace (fun device device2 -> device.Id = device2.Id)
   
-  let private checkSameBorrower (user: User) (borrower: UserId): Result<UserId, string> =
-    if user.Id = borrower then Ok borrower else Error "User is not the same as borrower" 
+  let private checkSameBorrower (user: User) (borrower: UserId) =
+    if user.Id = borrower then Ok borrower else Error "User is not the same as the borrower" 
 
-  let private returnBack (device: Device) (user: User): Result<Device, string> =
-    match device.BorrowedBy with
-      | Some userId -> (checkSameBorrower user userId) |> Result.map (fun _ -> {device with BorrowedBy=None})
-      | None -> Error "Nobody has borrowed this book"
+  let private returnBack device user =
+    device.BorrowedBy
+      |> orError "Nobody has borrowed this book"
+      |> Result.bind (fun userId -> checkSameBorrower user userId)
+      |> Result.map (fun _ -> {device with BorrowedBy=None})
 
-  let private findDevice (deviceToFind: Device) (devices: Device list) =
-    devices 
+  let private findDevice deviceToFind devices =
+    devices
       |> List.tryFind (fun device -> device.Id = deviceToFind.Id)
       |> orNotFound
 
-  let returnBackToDevices (deviceToReturn: Device) (user: User) (devices: Device list): Result<list<Device>, string> =
-    devices 
-      |> findDevice deviceToReturn
-      |> Result.bind (fun device -> returnBack device user)
-      |> Result.map (fun device -> updateDevices devices device)
+  let returnBackToDevices (deviceToReturn: Device) (user: User) =
+    findDevice deviceToReturn
+      >> Result.bind (fun device -> returnBack device user)
+      >> Result.map (fun device -> updateDevices device devices)
 
-  let borrowFromDevices (deviceToBorrow: Device) (user: User) (devices: list<Device>): Result<list<Device>, string> =
-    devices 
-      |> findDevice deviceToBorrow
-      |> Result.bind (fun device -> borrow device user)
-      |> Result.map (fun device -> updateDevices devices device)
-
+  let borrowFromDevices (deviceToBorrow: Device) (user: User) =
+    findDevice deviceToBorrow
+      >> Result.bind (fun device -> borrow device user)
+      >> Result.map (fun device -> updateDevices device devices)
       
-  let available (device: Device) = device.BorrowedBy.IsNone
+  let available (device: Device): bool = device.BorrowedBy.IsNone
   
-  let allAvailableDevices = List.filter available
+  let allAvailableDevices: list<Device> -> list<Device> = List.filter available
     
-  let allBorrowedDevices = List.filter (fun device -> not(available device))
+  let allBorrowedDevices: list<Device> -> list<Device> = List.filter (available >> not)
 
   
