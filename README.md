@@ -6,3 +6,7 @@ Install & Run
 ```sh
 npm install && npm start
 ```
+
+VSCode requirements:
+
+Go to the extension menu and install ionide-fsharp extension
